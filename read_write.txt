@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+sem_t readLock;
+sem_t writeLock;
+int readCount = 0;
+
+void *reader(void *arg) {
+    while (1) {
+        sem_wait(&readLock);
+        readCount++;
+        if (readCount == 1) {
+            sem_wait(&writeLock);
+        }
+        sem_post(&readLock);
+
+        printf("%s is READING\n", (char *)arg);
+        sleep(1); // Simulate reading
+        printf("%s has FINISHED READING\n", (char *)arg);
+
+        sem_wait(&readLock);
+        readCount--;
+        if (readCount == 0) {
+            sem_post(&writeLock);
+        }
+        sem_post(&readLock);
+
+        sleep(1); // Sleep before next read
+    }
+
+    pthread_exit(NULL);
+}
+
+void *writer(void *arg) {
+    while (1) {
+        sem_wait(&writeLock);
+
+        printf("%s is WRITING\n", (char *)arg);
+        sleep(2); // Simulate writing
+        printf("%s has finished WRITING\n", (char *)arg);
+
+        sem_post(&writeLock);
+
+        sleep(2); // Sleep before next write
+    }
+
+    pthread_exit(NULL);
+}
+
+int main() {
+    sem_init(&readLock, 0, 1);
+    sem_init(&writeLock, 0, 1);
+
+    pthread_t t1, t2, t3, t4;
+
+    char *reader1 = "Reader1";
+    char *reader2 = "Reader2";
+    char *writer1 = "Writer1";
+    char *reader3 = "Reader3";
+
+    pthread_create(&t1, NULL, reader, (void *)reader1);
+    pthread_create(&t2, NULL, reader, (void *)reader2);
+    pthread_create(&t3, NULL, writer, (void *)writer1);
+    pthread_create(&t4, NULL, reader, (void *)reader3);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    pthread_join(t3, NULL);
+    pthread_join(t4, NULL);
+
+    sem_destroy(&readLock);
+    sem_destroy(&writeLock);
+
+    return 0;
+}

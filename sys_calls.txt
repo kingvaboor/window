@@ -1,0 +1,140 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <string.h>
+
+void processSystemCalls() {
+    int status;
+    pid_t child_pid = fork();
+    
+    if (child_pid == 0) {
+        printf("Child process (PID: %d) executing...\n", getpid());
+        exit(0);
+    } else if (child_pid > 0) {
+        printf("Parent process (PID: %d) waiting for child (PID: %d) to finish...\n", getpid(), child_pid);
+        wait(&status);
+        printf("Child process (PID: %d) finished.\n", child_pid);
+    } else {
+        perror("Fork failed");
+    }
+}
+
+void fileSystemCalls() {
+    int fd = open("Sample.txt", O_CREAT | O_WRONLY, 0644);
+    
+    if (fd != -1) {
+        char buffer[] = "Hello, this is a sample text.\n";
+        ssize_t bytes_written = write(fd, buffer, strlen(buffer));
+        
+        if (bytes_written > 0) {
+            printf("%ld bytes written to file.\n", bytes_written);
+        } else {
+            perror("Write failed");
+        }
+        
+        close(fd);
+    } else {
+        perror("Open failed");
+    }
+
+    //also read from the file
+    int fd2 = open("Sample.txt", O_RDONLY);
+    if (fd2 != -1) {
+        char buffer[100];
+        ssize_t bytes_read = read(fd2, buffer, sizeof(buffer));
+        
+        if (bytes_read > 0) {
+            printf("%ld bytes read from file.\n", bytes_read);
+            printf("File contents: %s\n", buffer);
+        } else {
+            perror("Read failed");
+        }
+        
+        close(fd2);
+    } else {
+        perror("Open failed");
+    }
+    
+    struct stat file_info;
+    if (stat("Sample.txt", &file_info) == 0) {
+        printf("File size: %ld bytes\n", file_info.st_size);
+    } else {
+        perror("Stat failed");
+    }
+    
+    if (unlink("Sample.txt") == 0) {
+        printf("File 'sample_file.txt' unlinked.\n");
+    } else {
+        perror("Unlink failed");
+    }
+   
+}
+void communicationSystemCalls() {
+    int fd[2];
+    
+    if (pipe(fd) == 0) {
+        char message[] = "Hello, this message is sent through a pipe.";
+        write(fd[1], message, strlen(message) + 1);
+        
+        char received_message[100];
+        read(fd[0], received_message, sizeof(received_message));
+        printf("Received message from pipe: %s\n", received_message);
+        
+        close(fd[0]);
+        close(fd[1]);
+    } else {
+        perror("Pipe failed");
+    }
+}
+
+void informationSystemCalls() {
+    printf("Current process ID: %d\n", getpid());
+    printf("Parent process ID: %d\n", getppid());
+    printf("User ID: %d\n", getuid());
+    printf("Effective User ID: %d\n", geteuid());
+    printf("Group ID: %d\n", getgid());
+    printf("Effective Group ID: %d\n", getegid());
+}
+
+int main() {
+    int choice;
+    
+    do {
+        printf("\nMenu:\n");
+        printf("1. Process System Calls\n");
+        printf("2. File System Calls\n");
+        printf("3. Communication System Calls\n");
+        printf("4. Information System Calls\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                processSystemCalls();
+                break;
+            case 2:
+                fileSystemCalls();
+                break;
+            case 3:
+                communicationSystemCalls();
+                break;
+            case 4:
+                informationSystemCalls();
+                break;
+            case 5:
+                printf("Exiting...\n");
+                exit(0);
+            default:
+                printf("Invalid choice. Please select a valid option.\n");
+        }
+    } while (1);
+    
+    return 0;
+}
+
+
+

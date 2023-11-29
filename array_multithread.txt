@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <pthread.h>
+
+int arr1[3];
+int arr2[3];
+int result[3];
+
+void *add()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        result[i] = arr1[i] + arr2[i];
+    }
+    printf("Addition Result: [%d, %d, %d]\n", result[0], result[1], result[2]);
+    return NULL;
+}
+
+void *multiply()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        result[i] = arr1[i] * arr2[i];
+    }
+    printf("Multiplication Result: [%d, %d, %d]\n", result[0], result[1], result[2]);
+    return NULL;
+}
+
+void *subtract()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        result[i] = arr1[i] - arr2[i];
+    }
+    printf("Subtraction Result: [%d, %d, %d]\n", result[0], result[1], result[2]);
+    return NULL;
+}
+
+void display(int arr[3])
+{
+
+    printf("Arr: [%d, %d, %d]\n", arr[0], arr[1], arr[2]);
+}
+
+int main()
+{
+    int choice;
+
+    printf("Multithreading\n");
+    printf("Enter elements in Arr_1\n");
+    for (int i = 0; i < 3; i++)
+    {
+        scanf("%d", &arr1[i]);
+    }
+
+    printf("Enter elements in Arr_2\n");
+    for (int i = 0; i < 3; i++)
+    {
+        scanf("%d", &arr2[i]);
+    }
+
+    printf("Array 1\n");
+    display(arr1);
+
+    printf("Array 2\n");
+    display(arr2);
+    pthread_t add_thread;
+
+    pthread_create(&add_thread, NULL, add, NULL);
+
+    pthread_t multiply_thread;
+    pthread_create(&multiply_thread, NULL, multiply, NULL);
+
+    pthread_t subtract_thread;
+    pthread_create(&subtract_thread, NULL, subtract, NULL);
+
+    pthread_join(add_thread, NULL);
+    pthread_join(multiply_thread, NULL);
+    pthread_join(subtract_thread, NULL);
+
+    return 0;
+}

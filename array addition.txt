@@ -1,0 +1,140 @@
+#include <stdio.h>
+#include <pthread.h>
+
+int matA[3] = {1, 2, 3};
+                  
+
+int matB[3] = {4, 5, 6};
+
+int matC[3] = {0, 0, 0};
+
+int ROW = 3;
+
+int MAX_THREADS = 3;
+int k = 0;
+
+void *add(void * arg)
+{
+    
+    for(int i=0; i<ROW; i++)
+    { 
+        
+      matC[i] = (matA[i] + matB[i]);
+
+    }
+
+    k++;
+}
+
+void *sub()
+{
+  for(int i=0; i<ROW; i++)
+    { 
+        
+      matC[i] = (matA[i] - matB[i]);
+
+    }
+
+    k++;
+}
+
+void * multi(void * arg)
+{
+    for(int i=0; i<ROW; i++)
+    {
+        
+        
+            matC[k] += (matA[k] * matB[i]);
+        
+    }
+
+    k++;
+}
+void display(int mat[ROW])
+{
+    for (int i = 0; i < ROW; i++)
+    {
+       
+            printf("%d ", mat[i]);
+        
+        printf("\t");
+    }
+}
+
+int main()
+{
+    int choice;
+
+    printf("Enter the choice\n");
+    printf("1 --> Multiplication\n");
+    printf("2 --> Addition\n");
+    printf("3 --> Subtraction\n");
+
+    scanf("%d", &choice);
+    int max_threads = MAX_THREADS;
+
+    switch (choice)
+    {
+    case 1:
+
+        k = 0;
+        printf("Array A-\n");
+        display(matA);
+
+        
+        printf("Array B-\n");
+        display(matB);
+
+        pthread_t mul_th[1];
+        for(int i=0; i<max_threads; i++)
+        {
+            int ret;
+            ret = pthread_create(&mul_th[i], NULL, multi, NULL);
+            if(ret ==0)
+                printf("\nThread%d created successfully",i);
+            else
+                printf("\nThread%d not created",i);
+        }
+
+        for(int i=0; i<max_threads; i++)
+        {
+            pthread_join(mul_th[i], NULL);
+        }
+       
+
+    case 2:
+        k = 0;
+        printf("Array A-\n");
+        display(matA);
+
+        printf("Array B-\n");
+        display(matB);
+        for(int i=0; i<max_threads; i++)
+        {
+            int ret;
+            ret = pthread_create(&mul_th[i], NULL, multi, NULL);
+            if(ret ==0)
+                printf("\nThread%d created successfully",i);
+            else
+                printf("\nThread%d not created",i);
+        }
+
+        break;
+
+    case 3:
+        k = 0;
+        printf("Array A-\n");
+        display(matA);
+
+        printf("Array B-\n");
+        display(matB);
+
+        break;
+    default:
+        printf("Enter a valid choice");
+        break;
+    }
+
+    return 0;
+}
+
